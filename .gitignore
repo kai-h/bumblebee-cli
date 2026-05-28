@@ -1,0 +1,11 @@
+# compiled binaries
+bumblebee-cli
+bumblebee-cli-*
+
+# macOS
+.DS_Store
+
+# Go test/coverage artefacts
+*.test
+*.out
+/vendor/

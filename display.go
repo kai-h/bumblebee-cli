@@ -107,38 +107,41 @@ func displayResults(result *ScanResult) {
 			pkgs := byEco[eco]
 			fmt.Printf("  %s\n", boldStyle.Render(fmt.Sprintf("%s (%d)", eco, len(pkgs))))
 
-			display := pkgs
-			if len(display) > 100 {
-				display = display[:100]
+			if len(result.Findings) > 0 {
+				display := pkgs
+				if len(display) > 100 {
+					display = display[:100]
+				}
+
+				for _, p := range display {
+					var meta []string
+					if p.Version != "" {
+						meta = append(meta, p.Version)
+					}
+					if p.SourceFile != "" {
+						meta = append(meta, p.SourceFile)
+					}
+
+					if len(meta) > 0 {
+						fmt.Printf("    %s  %s\n", p.PackageName, dimStyle.Render(strings.Join(meta, " · ")))
+					} else {
+						fmt.Printf("    %s\n", p.PackageName)
+					}
+
+					// Confidence labels match GUI tooltip text exactly.
+					switch p.Confidence {
+					case "medium":
+						fmt.Printf("      %s\n", dimStyle.Render("medium confidence — version inferred from spec or tag, not confirmed by lockfile"))
+					case "low":
+						fmt.Printf("      %s\n", dimStyle.Render("low confidence — detected from config reference only, not confirmed as installed"))
+					}
+				}
+
+				if len(pkgs) > 100 {
+					fmt.Printf("    %s\n", dimStyle.Render(fmt.Sprintf("… and %d more", len(pkgs)-100)))
+				}
 			}
 
-			for _, p := range display {
-				var meta []string
-				if p.Version != "" {
-					meta = append(meta, p.Version)
-				}
-				if p.SourceFile != "" {
-					meta = append(meta, p.SourceFile)
-				}
-
-				if len(meta) > 0 {
-					fmt.Printf("    %s  %s\n", p.PackageName, dimStyle.Render(strings.Join(meta, " · ")))
-				} else {
-					fmt.Printf("    %s\n", p.PackageName)
-				}
-
-				// Confidence labels match GUI tooltip text exactly.
-				switch p.Confidence {
-				case "medium":
-					fmt.Printf("      %s\n", dimStyle.Render("medium confidence — version inferred from spec or tag, not confirmed by lockfile"))
-				case "low":
-					fmt.Printf("      %s\n", dimStyle.Render("low confidence — detected from config reference only, not confirmed as installed"))
-				}
-			}
-
-			if len(pkgs) > 100 {
-				fmt.Printf("    %s\n", dimStyle.Render(fmt.Sprintf("… and %d more", len(pkgs)-100)))
-			}
 			fmt.Println()
 		}
 	}

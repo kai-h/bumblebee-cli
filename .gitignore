@@ -1,6 +1,7 @@
-# compiled binaries
+# compiled binaries and release artefacts
 bumblebee-cli
 bumblebee-cli-*
+/dist/
 
 # macOS
 .DS_Store

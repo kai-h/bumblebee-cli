@@ -7,16 +7,17 @@ A terminal interface for [bumblebee](https://github.com/perplexityai/bumblebee),
 - Automatically downloads the `bumblebee` binary and threat intel catalog on first run — no manual setup required
 - Keeps the threat intel catalog up to date from the `main` branch (independent of binary releases)
 - Severity-coded finding badges (critical / high / medium / low)
-- Packages grouped by ecosystem with confidence annotations
+- Packages grouped by ecosystem; full package list shown only when findings are present
 - Exit codes suitable for CI: `0` = clean, `1` = error, `2` = findings present
+
+## Installation
+
+Download the latest release for your platform from the [releases page](https://github.com/kai-h/bumblebee-cli/releases), extract, and place the binary on your `PATH`. The `bumblebee` scanner binary and threat intel catalog are downloaded automatically on first run.
 
 ## Quick start
 
 ```sh
-# Build
-go build -o bumblebee-cli .
-
-# Scan a project (binary and catalog are downloaded automatically if needed)
+# Scan a project (bumblebee binary and catalog are downloaded automatically if needed)
 ./bumblebee-cli --root /path/to/project
 
 # Scan with a specific profile
@@ -24,6 +25,9 @@ go build -o bumblebee-cli .
 
 # Update the threat intel catalog
 ./bumblebee-cli --update-catalog
+
+# Print version
+./bumblebee-cli --version
 ```
 
 ## Flags
@@ -36,6 +40,36 @@ go build -o bumblebee-cli .
 | `--binary` | _(auto)_ | Path to `bumblebee` binary. Skips auto-download when set. |
 | `--update-catalog` | | Fetch the latest threat intel catalog from GitHub and exit. |
 | `--version` | | Print version and exit. |
+
+## Output
+
+A clean scan shows a per-ecosystem package count and a summary line — no noise when there's nothing to act on:
+
+```
+Packages (159)
+
+  npm (159)
+
+Clean — 159 package(s) scanned, no findings
+```
+
+When findings are present the full package list is shown alongside the findings, sorted by severity:
+
+```
+Findings (2)
+
+  CRITICAL  evil-pkg  1.0.0
+            npm · mini-shai-hulud · malicious_package
+
+Packages (159)
+
+  npm (159)
+    evil-pkg        1.0.0 · package-lock.json
+    lodash          4.17.21 · package-lock.json
+    ...
+
+2 finding(s)  ·  159 package(s)
+```
 
 ## Auto-provisioning
 
@@ -54,12 +88,25 @@ Both are stored in the platform data directory:
 
 On subsequent runs, the catalog is checked against GitHub once every 24 hours. If a newer commit to `threat_intel/` is found you will be prompted to update. Pass `--catalog /path` to manage the catalog yourself and skip all network checks.
 
-## Building for Linux
+## Building from source
 
 ```sh
-GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=v0.1.0" -o bumblebee-cli .
-GOOS=linux GOARCH=arm64 go build -ldflags "-X main.version=v0.1.0" -o bumblebee-cli-arm64 .
+go build -o bumblebee-cli .
 ```
+
+To build a release binary with version embedded and debug info stripped:
+
+```sh
+go build -ldflags "-s -w -X main.version=v1.0.0" -trimpath -o bumblebee-cli .
+```
+
+To cross-compile for another platform:
+
+```sh
+GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X main.version=v1.0.0" -trimpath -o bumblebee-cli .
+```
+
+See `release.sh` for the full multi-platform build and publish workflow.
 
 ## Exit codes
 
@@ -71,5 +118,5 @@ GOOS=linux GOARCH=arm64 go build -ldflags "-X main.version=v0.1.0" -o bumblebee-
 
 ## Requirements
 
-- Go 1.21+ to build
+- Go 1.21+ to build from source
 - No runtime dependencies — the `bumblebee` binary and threat intel catalog are fetched automatically
